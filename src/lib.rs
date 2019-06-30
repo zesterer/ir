@@ -6,7 +6,7 @@ pub struct Program<'a> {
 
 pub struct Block<'a> {
     inputs: Vec<Binding<'a>>,
-    ops: Op<'a>,
+    ops: (Binding<'a>, Op<'a>),
     exit: Branch<'a>,
 }
 
@@ -38,11 +38,13 @@ pub enum Op<'a> {
 pub enum BinaryOp {
     Add,
     Eq,
+    // TODO: More
 }
 
 pub enum UnaryOp {
     Neg,
     Not,
+    // TODO: More
 }
 
 pub enum Branch<'a> {
