@@ -36,8 +36,16 @@ pub enum Op<'a> {
 }
 
 pub enum BinaryOp {
+	// Math
     Add,
+    Sub,
+    Mul,
+    Div,
+    // Comparison
     Eq,
+    Neq,
+    Geq,
+    Leq,
     // TODO: More
 }
 
