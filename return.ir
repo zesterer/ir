@@ -1,0 +1,2 @@
+BLOCK (impure) _main () ; int main()
+	branch_end 0 ; return 0
