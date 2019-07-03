@@ -1,3 +1,4 @@
+use crate::*;
 use crate::src::{SrcLoc, SrcRange};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -35,7 +36,7 @@ pub enum Operator {
 	// TODO: operators
 }
 
-pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
+pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, Error> {
 	let mut tokens = Vec::<Token>::new();
 	let mut src_loc = SrcLoc::new(1, 1);
 
@@ -115,7 +116,7 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 						_ => tokens.push(Token(Identifier(slice), range)),
 					}
 				} else {
-					return Err(()); // TODO: real lexer errors
+					return Err(error(ErrorKind::UnexpectedChar(c)).at(SrcRange::new(src_loc, 1)));
 				}
 			}
 		}
