@@ -3,11 +3,15 @@ use std::collections::HashMap;
 pub mod lexer;
 pub mod src;
 
+use lexer::*;
+use src::SrcRange;
+
 pub struct Program<'a> {
     blocks: HashMap<&'a str, Block<'a>>,
 }
 
 pub struct Block<'a> {
+    tags: Vec<&'a str>, // Identifier list in parens after "BLOCK": BLOCK (param list) ...
     inputs: Vec<Binding<'a>>,
     ops: (Binding<'a>, Op<'a>),
     exit: Branch<'a>,
@@ -67,4 +71,22 @@ pub enum Branch<'a> {
     },
     Return(Vec<Binding<'a>>),
     End,
+}
+
+// TODO: it would be great if we could write our own type for iterating over the tokens
+
+pub fn parse_program<'a, I: std::iter::Iterator<Item=Token<'a>>>(tokens: &mut I) -> Result<Program<'a>, SrcRange> {
+    let mut blocks = HashMap::new();
+
+    while let Some(Token(lexeme, range)) = tokens.next() {
+        if lexeme == Lexeme::Keyword(Keyword::Block) {
+            // TODO: let block = parse_block(tokens)?;
+        } else {
+            return Err(range); // TODO: make an error type
+        }
+    }
+
+    Ok(Program {
+        blocks
+    })
 }
