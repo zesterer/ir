@@ -103,4 +103,19 @@ mod test {
 			Token(Lexeme::Symbol(Symbol::Colon),   SrcRange::new(SrcLoc::new(1, 8), 1)), // :
 		]);
 	}
+
+	#[test]
+	fn src_pos() {
+		let src = " this
+is
+  a test
+";
+		let tokens = lex(src).unwrap();
+		assert_eq!(tokens, vec![
+			Token(Lexeme::Identifier(&src[1..=4]), SrcRange::new(SrcLoc::new(1, 2), 4)), // this
+			Token(Lexeme::Identifier(&src[6..=7]), SrcRange::new(SrcLoc::new(2, 1), 2)), // is
+			Token(Lexeme::Identifier(&src[11..=11]), SrcRange::new(SrcLoc::new(3, 3), 1)), // a
+			Token(Lexeme::Identifier(&src[13..=16]), SrcRange::new(SrcLoc::new(3, 5), 4)), // test
+		]);
+	}
 }
