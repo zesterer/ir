@@ -41,10 +41,22 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 	let mut chars = src.chars().enumerate().peekable();
 	while let Some((i, c)) = chars.next() {
 		match c {
+			// Control
 			'\n' => {
 				src_loc.line += 1;
 				src_loc.col = 1;
 				continue; // Don't want src_loc.col += 1;
+			}
+
+			';' => { // Skip comments
+				while let Some((_, c)) = chars.peek() {
+					if c != &'\n' {
+						chars.next();
+						src_loc.col += 1;
+					} else {
+						break; // leave the '\n' for next cycle
+					}
+				}
 			}
 
 			// Symbols
@@ -62,7 +74,7 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 					// Don't do anything, but don't 'continue' so we can src_loc.col += 1;
 				} else if c.is_digit(10) {
 					// TODO: lexing numbers
-				} else if c.is_alphabetic() { // identifiers & keywords
+				} else if c == '_' || c.is_alphabetic() { // identifiers & keywords
 					let start_index = i; // starting index in the src string slice
 					let mut range = SrcRange::new(src_loc, 1); // region of the slice we're making
 					
@@ -75,8 +87,17 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 							break;
 						}
 					}
-					
-					tokens.push(Token(Identifier(&src[start_index..start_index+range.len]), range));
+
+					let slice = &src[start_index..start_index+range.len];
+					match slice {
+						// Keywords
+						"BLOCK" => tokens.push(Token(Keyword(Keyword::Block), range)),
+
+						"_" => unimplemented!(), // TODO: support this
+
+						// Identifier
+						_ => tokens.push(Token(Identifier(slice), range)),
+					}
 				} else {
 					return Err(()); // TODO: real lexer errors
 				}
