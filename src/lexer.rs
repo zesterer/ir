@@ -17,7 +17,8 @@ use Lexeme::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
-	Block,
+	Block,	   // BLOCK
+	BranchEnd, // branch_end
 	// TODO: more keywords
 }
 
@@ -73,7 +74,21 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 				if c.is_whitespace() {
 					// Don't do anything, but don't 'continue' so we can src_loc.col += 1;
 				} else if c.is_digit(10) {
-					// TODO: lexing numbers
+					let start_index = i; // starting index in the src number slice
+					let mut range = SrcRange::new(src_loc, 1); // region of the slice we're making
+					
+					while let Some((_, c)) = chars.peek() {
+						if c.is_digit(10) { // TODO: currently only lexes whole integers
+							chars.next(); // consume the character
+							range.len += 1;
+							src_loc.col += 1;
+						} else {
+							break;
+						}
+					}
+
+					// TODO: could do a sort of 'if slice.contains('.') then is decimal num, else is integer'
+					tokens.push(Token(Num(&src[start_index..start_index+range.len]), range));
 				} else if c == '_' || c.is_alphabetic() { // identifiers & keywords
 					let start_index = i; // starting index in the src string slice
 					let mut range = SrcRange::new(src_loc, 1); // region of the slice we're making
@@ -92,6 +107,7 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 					match slice {
 						// Keywords
 						"BLOCK" => tokens.push(Token(Keyword(Keyword::Block), range)),
+						"branch_end" => tokens.push(Token(Keyword(Keyword::BranchEnd), range)),
 
 						"_" => unimplemented!(), // TODO: support this
 
