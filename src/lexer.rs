@@ -12,6 +12,7 @@ pub enum Lexeme<'a> {
 	Keyword(Keyword),
 	Symbol(Symbol),
 	Operator(Operator),
+	EOL, EOF,
 	// TODO: make token types
 }
 use Lexeme::*;
@@ -45,6 +46,7 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, Error> {
 		match c {
 			// Control
 			'\n' => {
+				tokens.push(Token(EOL, SrcRange::new(src_loc, 1)));
 				src_loc.line += 1;
 				src_loc.col = 1;
 				continue; // Don't want src_loc.col += 1;
@@ -122,6 +124,7 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, Error> {
 		}
 		src_loc.col += 1;
 	}
+	tokens.push(Token(EOF, SrcRange::new(src_loc, 0))); // NOTE: EOF has len 0
 	
 	Ok(tokens)
 }
