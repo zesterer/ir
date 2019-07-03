@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 pub mod lexer;
+pub mod src;
 
 pub struct Program<'a> {
     blocks: HashMap<&'a str, Block<'a>>,

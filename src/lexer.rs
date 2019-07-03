@@ -1,19 +1,27 @@
-#[derive(Debug, Clone)]
-pub enum Token<'a> {
+use crate::src::{SrcLoc, SrcRange};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Token<'a>(pub Lexeme<'a>, pub SrcRange);
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Lexeme<'a> {
 	Identifier(&'a str),
+	Str(&'a str),
+	Num(&'a str),
 	Keyword(Keyword),
 	Symbol(Symbol),
 	Operator(Operator),
 	// TODO: make token types
 }
+use Lexeme::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
 	Block,
 	// TODO: more keywords
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Symbol {
 	LParen,
 	RParen,
@@ -21,22 +29,29 @@ pub enum Symbol {
 	Comma,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Operator {
 	// TODO: operators
 }
 
 pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 	let mut tokens = Vec::<Token>::new();
+	let mut src_loc = SrcLoc::new(1, 1);
 
 	let mut chars = src.chars().enumerate().peekable();
 	while let Some((i, c)) = chars.next() {
 		match c {
+			'\n' => {
+				src_loc.line += 1;
+				src_loc.col = 1;
+				continue; // Don't want src_loc.col += 1;
+			}
+
 			// Symbols
-			'(' => tokens.push(Token::Symbol(Symbol::LParen)),
-			')' => tokens.push(Token::Symbol(Symbol::RParen)),
-			':' => tokens.push(Token::Symbol(Symbol::Colon)),
-			',' => tokens.push(Token::Symbol(Symbol::Comma)),
+			'(' => tokens.push(Token(Symbol(Symbol::LParen), SrcRange::new(src_loc, 1))),
+			')' => tokens.push(Token(Symbol(Symbol::RParen), SrcRange::new(src_loc, 1))),
+			':' => tokens.push(Token(Symbol(Symbol::Colon), SrcRange::new(src_loc, 1))),
+			',' => tokens.push(Token(Symbol(Symbol::Comma), SrcRange::new(src_loc, 1))),
 			
 			// Operators
 			
@@ -44,29 +59,48 @@ pub fn lex<'a>(src: &'a str) -> Result<Vec<Token<'a>>, ()> {
 			
 			_ => {
 				if c.is_whitespace() {
-					continue;
+					// Don't do anything, but don't 'continue' so we can src_loc.col += 1;
 				} else if c.is_digit(10) {
 					// TODO: lexing numbers
 				} else if c.is_alphabetic() { // identifiers & keywords
 					let start_index = i; // starting index in the src string slice
-					let mut end_index = i; // end of the slice we're making
+					let mut range = SrcRange::new(src_loc, 1); // region of the slice we're making
 					
 					while let Some((_, c)) = chars.peek() {
 						if c.is_alphabetic() || c == &'_' {
 							chars.next(); // consume the character
-							end_index += 1;
+							range.len += 1;
+							src_loc.col += 1;
 						} else {
 							break;
 						}
 					}
 					
-					tokens.push(Token::Identifier(&src[start_index..=end_index]));
+					tokens.push(Token(Identifier(&src[start_index..start_index+range.len]), range));
 				} else {
 					return Err(()); // TODO: real lexer errors
 				}
 			}
 		}
+		src_loc.col += 1;
 	}
 	
 	Ok(tokens)
+}
+
+#[cfg(test)]
+mod test {
+	use super::*;
+
+	#[test]
+	fn simple_lex() {
+		let src = "( abc ):";
+		let tokens = lex(src).unwrap();
+		assert_eq!(tokens, vec![
+			Token(Lexeme::Symbol(Symbol::LParen),  SrcRange::new(SrcLoc::new(1, 1), 1)), // (
+			Token(Lexeme::Identifier(&src[2..=4]), SrcRange::new(SrcLoc::new(1, 3), 3)), // abc
+			Token(Lexeme::Symbol(Symbol::RParen),  SrcRange::new(SrcLoc::new(1, 7), 1)), // )
+			Token(Lexeme::Symbol(Symbol::Colon),   SrcRange::new(SrcLoc::new(1, 8), 1)), // :
+		]);
+	}
 }
