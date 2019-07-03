@@ -71,20 +71,45 @@ pub enum Branch<'a> {
     End,
 }
 
-// TODO: it would be great if we could write our own type for iterating over the tokens
+struct TokenStream<'a> {
+    pub(crate) tokens: &'a [Token<'a>],
+    pub(crate) index: usize,
+}
 
-pub fn parse_program<'a, I: std::iter::Iterator<Item=Token<'a>>>(tokens: &mut I) -> Result<Program<'a>, Error> {
-    let mut blocks = HashMap::new();
+impl<'a> TokenStream<'a> {
+    pub fn advance(&mut self) -> Option<&'a Token<'a>> {
+        self.index += 1;
+        self.tokens.get(self.index-1)
+    }
+    // .peek(0) should get the next unconsumed token
+    pub fn peek(&self, index: usize) -> Option<&'a Token<'a>> {
+        self.tokens.get(self.index+index)
+    }
+}
 
-    while let Some(Token(lexeme, range)) = tokens.next() {
-        if lexeme == Lexeme::Keyword(Keyword::Block) {
-            // TODO: let block = parse_block(tokens)?;
-        } else {
-            return Err(error(ErrorKind::ExpectedBlock).at(range));
-        }
+pub struct Parser<'a> {
+    src: &'a str, // Could be used with token SrcRange info for better errors
+    tokens: TokenStream<'a>, // For iterating over the tokens from the lexer
+}
+
+impl<'src> Parser<'src> {
+    pub fn new(src: &'src str, tokens: &'src [Token<'src>]) -> Self {
+        Self { src, tokens: TokenStream { tokens, index: 0 } }
     }
 
-    Ok(Program {
-        blocks
-    })
+    pub fn parse(&mut self) -> Result<Program<'src>, Error> {
+        let mut blocks = HashMap::new();
+
+        while let Some(Token(lexeme, range)) = self.tokens.advance() {
+            if lexeme == &Lexeme::Keyword(Keyword::Block) {
+                // TODO: let block = parse_block(tokens)?;
+            } else {
+                return Err(error(ErrorKind::ExpectedBlock).at(*range));
+            }
+        }
+
+        Ok(Program {
+            blocks
+        })
+    }
 }
