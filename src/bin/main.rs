@@ -8,7 +8,7 @@ fn main() {
 	let argv = args().collect::<Vec<String>>();
 	if argv.len() > 1 {
 		let src = read_to_string(&argv[1]).unwrap();
-		let tokens = ir::lexer::lex(&src);
+		let tokens = lexer::lex(&src);
 		println!("{:#?}", tokens);
 	} else {
 		println!("fatal: no input file found");
