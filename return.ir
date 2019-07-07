@@ -1,2 +1,3 @@
-BLOCK (impure) _main () ; int main()
-	branch_end 0 ; return 0
+BLOCK (impure) _main () (code I32); int main()
+	code = 0
+	branch_end ; return

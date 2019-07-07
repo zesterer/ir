@@ -20,6 +20,8 @@ pub enum ErrorKind {
     /// While parsing the program, it expected to find a block, but did not.
     /// This is most likely due to having an empty program.
     ExpectedBlock,
+    ExpectedLParen, ExpectedRParen { opening: SrcRange },
+    ExpectedIdentifier,
 }
 
 impl Error {
