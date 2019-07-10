@@ -158,7 +158,7 @@ impl<'src> Parser<'src> {
         // Possible list of tags in parenthesis after "BLOCK" keyword
         if let Some(Token(Lexeme::Symbol(Symbol::LParen), range)) = self.tokens.peek(0) { // a list of tags has been found
             self.tokens.advance(); // consume (   ... TODO: should we make parenthesis mandatory?
-            while let Some(Token(Lexeme::Identifier(id), _)) = self.tokens.peek(0) {
+            while let Some(Token(Lexeme::Ident(id), _)) = self.tokens.peek(0) {
                 self.tokens.advance();
                 tags.push(*id);
             }
@@ -171,7 +171,7 @@ impl<'src> Parser<'src> {
         }
 
         match self.tokens.advance() { // Expect a name
-            Some(Token(Lexeme::Identifier(id), _)) => name = id,
+            Some(Token(Lexeme::Ident(id), _)) => name = id,
             Some(Token(_, r)) => return Err(error(ErrorKind::ExpectedIdentifier).at(*r)),
             _ => unimplemented!(),
         }
@@ -187,7 +187,7 @@ impl<'src> Parser<'src> {
         while let Some(Token(l, r)) = self.tokens.peek(0) { // TODO: this needs work and is incomplete
             match l {
                 Lexeme::Symbol(Symbol::Comma) => {},
-                Lexeme::Identifier(id) => {
+                Lexeme::Ident(id) => {
                     self.tokens.advance();
                     id_stack.push(id);
                 }

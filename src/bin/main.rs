@@ -9,8 +9,9 @@ fn main() {
 	if argv.len() > 1 {
 		let src = read_to_string(&argv[1]).unwrap();
 		let tokens = lexer::lex(&src).unwrap();
-		let program = parser::Parser::new(&tokens).parse().unwrap();
-		println!("{:#?}", program);
+		// let program = parser::Parser::new(&tokens).parse().unwrap();
+		println!("{:#?}", tokens);
+		// println!("{:#?}", program);
 	} else {
 		println!("fatal: no input file found");
 		std::process::exit(1);
